@@ -356,7 +356,7 @@ async function runMode(mode) {
       body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] })
     });
     const data = await res.json();
-    const text = data.content?.[0]?.text || 'No response received.';
+    const text = data.text || data.content?.[0]?.text || 'No response received.';
     output.textContent = text;
     output.classList.add('show');
     actions.classList.add('show');
