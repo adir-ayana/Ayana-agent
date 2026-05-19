@@ -1,16 +1,10 @@
 export default async function handler(req, res) {
-  if (req.method === "OPTIONS") {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    return res.status(200).end();
-  }
-
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
   res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -28,17 +22,10 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-
-    // Extract text and send it directly so frontend can read it easily
-    const text = data?.content?.[0]?.text || null;
-
-    if (text) {
-      return res.status(200).json({ text });
-    } else {
-      return res.status(200).json({ text: null, raw: data });
-    }
+    const text = data?.content?.[0]?.text || JSON.stringify(data);
+    return res.status(200).json({ text });
 
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ text: "Error: " + err.message });
   }
 }
