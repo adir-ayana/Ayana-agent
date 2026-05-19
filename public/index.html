@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ayana — SEO & Content Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --cream: #faf7f2; --warm: #f5f0e8; --sage: #8a9e8c; --green: #2d4a35;
+    --gold: #c4a35a; --gold-l: #e8d5a3; --dark: #1a1a1a; --mid: #5a5a5a;
+    --light: #9a9a9a; --border: #e0d8cc;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--dark); min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: var(--green); padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+  .brand { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--gold-l); letter-spacing: 2px; text-transform: uppercase; font-weight: 300; }
+  .brand b { color: var(--gold); font-weight: 600; }
+  .brand-sub { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+  .status { background: rgba(138,158,140,0.2); border: 1px solid rgba(138,158,140,0.4); color: #a8c8aa; font-size: 11px; padding: 4px 14px; border-radius: 20px; }
+
+  /* LAYOUT */
+  .layout { display: grid; grid-template-columns: 230px 1fr; min-height: calc(100vh - 64px); }
+
+  /* SIDEBAR */
+  .sidebar { background: var(--warm); border-right: 1px solid var(--border); padding: 20px 12px; display: flex; flex-direction: column; gap: 3px; position: sticky; top: 64px; height: calc(100vh - 64px); overflow-y: auto; }
+  .s-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--light); padding: 8px 10px 3px; }
+  .s-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; width: 100%; font-family: inherit; font-size: 13px; color: var(--mid); transition: all 0.15s; }
+  .s-btn:hover { background: var(--border); }
+  .s-btn.active { background: var(--green); color: var(--gold-l); }
+  .s-divider { height: 1px; background: var(--border); margin: 6px 0; }
+  .s-info { margin-top: auto; background: white; border: 1px solid var(--border); border-radius: 10px; padding: 13px 14px; }
+  .s-info-title { font-size: 11px; font-weight: 500; color: var(--mid); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
+  .s-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); flex-shrink: 0; }
+  .s-info-text { font-size: 11px; color: var(--light); line-height: 1.6; }
+
+  /* MAIN */
+  .main { padding: 28px 32px; }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* CARD */
+  .card { background: white; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .card-head { padding: 16px 22px; border-bottom: 1px solid var(--border); }
+  .card-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--green); font-weight: 600; }
+  .card-body { padding: 22px; }
+
+  /* FORM */
+  .f-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--light); margin-bottom: 6px; }
+  .f-group { margin-bottom: 16px; }
+  input[type=text], select, textarea {
+    font-family: inherit; font-size: 13px; border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; background: var(--cream);
+    color: var(--dark); outline: none; width: 100%; transition: border 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--sage); }
+  textarea { resize: vertical; min-height: 90px; }
+
+  /* CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; cursor: pointer; background: white; color: var(--mid); transition: all 0.15s; user-select: none; }
+  .chip.on { background: var(--green); border-color: var(--green); color: white; }
+
+  /* BUTTON */
+  .run-btn { background: var(--green); color: var(--gold-l); border: none; border-radius: 8px; padding: 12px 28px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; margin-top: 6px; }
+  .run-btn:hover { background: #1e3325; }
+  .run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* SEP */
+  .sep { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* LOADING */
+  .loading { display: none; align-items: center; gap: 10px; color: var(--light); font-size: 13px; padding: 8px 0; }
+  .loading.show { display: flex; }
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--sage); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* OUTPUT */
+  .output { display: none; background: var(--cream); border: 1px solid var(--border); border-radius: 10px; padding: 20px; font-size: 13.5px; line-height: 1.85; white-space: pre-wrap; }
+  .output.show { display: block; }
+
+  /* OUTPUT ACTIONS */
+  .out-actions { display: none; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .out-actions.show { display: flex; }
+  .act-btn { padding: 8px 16px; border-radius: 7px; border: 1px solid var(--border); background: white; font-family: inherit; font-size: 12px; cursor: pointer; color: var(--mid); display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
+  .act-btn:hover { border-color: var(--sage); }
+  .act-btn.primary { background: var(--green); color: var(--gold-l); border-color: var(--green); }
+  .act-btn.primary:hover { background: #1e3325; }
+
+  /* HISTORY */
+  .h-item { padding: 13px 16px; border: 1px solid var(--border); border-radius: 9px; margin-bottom: 9px; background: white; }
+  .h-type { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--sage); margin-bottom: 3px; }
+  .h-topic { font-size: 13px; font-weight: 500; }
+  .h-time { font-size: 11px; color: var(--light); margin-top: 2px; }
+  .h-preview { font-size: 12px; color: var(--mid); margin-top: 6px; line-height: 1.5; border-top: 1px solid var(--border); padding-top: 8px; }
+  .empty { text-align: center; padding: 50px 20px; color: var(--light); font-size: 13px; line-height: 1.8; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 28px; right: 28px; background: var(--green); color: var(--gold-l); padding: 12px 22px; border-radius: 10px; font-size: 13px; opacity: 0; transform: translateY(8px); transition: all 0.3s; pointer-events: none; z-index: 999; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* RESPONSIVE */
+  @media (max-width: 680px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; flex-direction: row; flex-wrap: wrap; padding: 10px; }
+    .s-label { display: none; }
+    .s-info { display: none; }
+    .main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="brand"><b>Ayana</b> Dermatology & Aesthetics</div>
+    <div class="brand-sub">SEO & Content Agent</div>
+  </div>
+  <div class="status">● Live</div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="s-label">Generate</div>
+    <button class="s-btn active" onclick="show('quick', this)">⚡ Quick Generate</button>
+    <button class="s-btn" onclick="show('brief', this)">📋 Full Brief</button>
+    <div class="s-divider"></div>
+    <div class="s-label">Tools</div>
+    <button class="s-btn" onclick="show('audit', this)">🔍 SEO Audit</button>
+    <button class="s-btn" onclick="show('keywords', this)">🎯 Keyword Research</button>
+    <div class="s-divider"></div>
+    <button class="s-btn" onclick="show('history', this)">📁 History</button>
+    <div class="s-info">
+      <div class="s-info-title"><span class="s-dot"></span> Powered by Claude</div>
+      <div class="s-info-text">All outputs pre-loaded with Ayana's brand voice, Dr. Levi, Fort Lauderdale SEO signals.</div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- QUICK -->
+    <div class="panel active" id="panel-quick">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Quick Generate</div></div>
+        <div class="card-body">
+          <div class="f-group">
+            <div class="f-label">Topic or Keyword</div>
+            <input type="text" id="q-topic" placeholder="e.g. HydraFacial Fort Lauderdale, Botox near me, skin cancer screening..." onkeydown="if(event.key==='Enter') runMode('quick')" />
+          </div>
+          <div class="f-group">
+            <div class="f-label">Output Type</div>
+            <div class="chips" id="chips">
+              <div class="chip on" onclick="toggleChip(this)">Blog Post</div>
+              <div class="chip" onclick="toggleChip(this)">Social Caption</div>
+              <div class="chip" onclick="toggleChip(this)">Meta Title & Description</div>
+              <div class="chip" onclick="toggleChip(this)">Yelp Copy</div>
+              <div class="chip" onclick="toggleChip(this)">SEO Keywords</div>
+            </div>
+          </div>
+          <button class="run-btn" id="run-quick" onclick="runMode('quick')">✦ Generate</button>
+          <div class="sep"></div>
+          <div class="loading" id="load-quick"><div class="spinner"></div> Agent is writing...</div>
+          <div class="output" id="out-quick"></div>
+          <div class="out-actions" id="act-quick">
+            <button class="act-btn" onclick="copyOut('out-quick')">📋 Copy</button>
+            <button class="act-btn primary" onclick="dlOut('out-quick', 'quick')">⬇ Download .txt</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BRIEF -->
+    <div class="panel" id="panel-brief">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Full Brief Mode</div></div>
+        <div class="card-body">
+          <div class="f-group"><div class="f-label">Topic / Service</div><input type="text" id="b-topic" placeholder="e.g. Mohs surgery, chemical peels, acne treatment..." /></div>
+          <div class="f-group"><div class="f-label">Target Audience</div><input type="text" id="b-audience" placeholder="e.g. women 35–55 in Fort Lauderdale, first-time Botox patients..." /></div>
+          <div class="f-group"><div class="f-label">Key Points to Include</div><textarea id="b-points" placeholder="e.g. Board-certified, Dr. Levi, family-run practice, accepts insurance, near Aventura..."></textarea></div>
+          <div class="f-group">
+            <div class="f-label">Tone</div>
+            <select id="b-tone">
+              <option value="warm and personal">Warm & Personal (Ayana brand voice)</option>
+              <option value="clinical and authoritative">Clinical & Authoritative</option>
+              <option value="luxury boutique">Luxury Boutique</option>
+              <option value="educational">Educational</option>
+            </select>
+          </div>
+          <div class="f-group">
+            <div class="f-label">Output Type</div>
+            <select id="b-output">
+              <option value="SEO blog post (800–1000 words)">SEO Blog Post</option>
+              <option value="social media captions for Instagram and Facebook">Social Media Captions</option>
+              <option value="meta title and meta description">Meta Title & Description</option>
+              <option value="Yelp Connect copy">Yelp Copy</option>
+              <option value="full content package: blog post + social captions + meta title and description">Full Content Package</option>
+            </select>
+          </div>
+          <button class="run-btn" id="run-brief" onclick="runMode('brief')">✦ Generate from Brief</button>
+          <div class="sep"></div>
+          <div class="loading" id="load-brief"><div class="spinner"></div> Crafting your content...</div>
+          <div class="output" id="out-brief"></div>
+          <div class="out-actions" id="act-brief">
+            <button class="act-btn" onclick="copyOut('out-brief')">📋 Copy</button>
+            <button class="act-btn primary" onclick="dlOut('out-brief', 'brief')">⬇ Download .txt</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIT -->
+    <div class="panel" id="panel-audit">
+      <div class="card">
+        <div class="card-head"><div class="card-title">SEO Audit</div></div>
+        <div class="card-body">
+          <div class="f-group"><div class="f-label">Page Content or Description</div><textarea id="a-content" style="min-height:130px" placeholder="Paste the page text you want audited, or describe the page (e.g. Ayana homepage, HydraFacial service page, About Us page)..."></textarea></div>
+          <div class="f-group"><div class="f-label">Target Keyword (optional)</div><input type="text" id="a-kw" placeholder="e.g. dermatologist Fort Lauderdale" /></div>
+          <button class="run-btn" id="run-audit" onclick="runMode('audit')">🔍 Run SEO Audit</button>
+          <div class="sep"></div>
+          <div class="loading" id="load-audit"><div class="spinner"></div> Auditing SEO signals...</div>
+          <div class="output" id="out-audit"></div>
+          <div class="out-actions" id="act-audit">
+            <button class="act-btn" onclick="copyOut('out-audit')">📋 Copy</button>
+            <button class="act-btn primary" onclick="dlOut('out-audit', 'audit')">⬇ Download .txt</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KEYWORDS -->
+    <div class="panel" id="panel-keywords">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Keyword Research</div></div>
+        <div class="card-body">
+          <div class="f-group"><div class="f-label">Service or Topic</div><input type="text" id="k-topic" placeholder="e.g. Botox, skin cancer screening, laser hair removal, HydraFacial..." /></div>
+          <div class="f-group"><div class="f-label">Location Focus</div><input type="text" id="k-loc" placeholder="Fort Lauderdale, Aventura, Pompano Beach..." /></div>
+          <button class="run-btn" id="run-kw" onclick="runMode('keywords')">🎯 Find Keywords</button>
+          <div class="sep"></div>
+          <div class="loading" id="load-keywords"><div class="spinner"></div> Researching keywords...</div>
+          <div class="output" id="out-keywords"></div>
+          <div class="out-actions" id="act-keywords">
+            <button class="act-btn" onclick="copyOut('out-keywords')">📋 Copy</button>
+            <button class="act-btn primary" onclick="dlOut('out-keywords', 'keywords')">⬇ Download .txt</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="panel" id="panel-history">
+      <div class="card">
+        <div class="card-head"><div class="card-title">History</div></div>
+        <div class="card-body" id="history-body">
+          <div class="empty">No outputs yet.<br>Generate content and it will be saved here.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const BRAND = `You are an expert SEO and content strategist for Ayana Dermatology & Aesthetics (ayanaderm.com, @ayana_derm), a boutique dermatology and aesthetics practice in Fort Lauderdale, Florida.
+
+BRAND CONTEXT:
+- Led by Dr. Levi — board-certified dermatologist
+- Family-run, boutique, accessible, comfort-focused practice
+- Location: Fort Lauderdale, FL — also serves Aventura, Pompano Beach, Boca Raton, Deerfield Beach
+- Services: medical dermatology + aesthetics (Botox, fillers, HydraFacial, laser treatments, chemical peels, skin cancer screening, Mohs surgery, acne, eczema, psoriasis)
+- Accepts insurance for medical dermatology
+- Brand voice: warm, personal, emotionally resonant, luxury-boutique — never cold or overly clinical
+- Target audience: adults in South Florida seeking quality skin care and aesthetic treatments
+- Differentiators: board-certified expertise, personal boutique care, Dr. Levi's hands-on approach, accepts insurance
+
+Always use Ayana's warm brand voice unless specified. Always include Fort Lauderdale / South Florida SEO signals naturally. Follow current SEO best practices.`;
+
+let history = [];
+
+function show(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'history') renderHistory();
+}
+
+function toggleChip(el) { el.classList.toggle('on'); }
+
+function getChips() {
+  return [...document.querySelectorAll('.chip.on')].map(c => c.textContent).join(', ');
+}
+
+function buildPrompt(mode) {
+  if (mode === 'quick') {
+    const topic = document.getElementById('q-topic').value.trim();
+    const types = getChips();
+    return `${BRAND}\n\nGenerate the following for Ayana Dermatology & Aesthetics based on this topic/keyword: "${topic}"\n\nOutput types: ${types}\n\nLabel each section with a clear header. Make each output ready to publish. Include local SEO signals naturally.`;
+  }
+  if (mode === 'brief') {
+    const topic = document.getElementById('b-topic').value.trim();
+    const audience = document.getElementById('b-audience').value.trim();
+    const points = document.getElementById('b-points').value.trim();
+    const tone = document.getElementById('b-tone').value;
+    const outputType = document.getElementById('b-output').value;
+    return `${BRAND}\n\nCreate ${outputType} for Ayana Dermatology & Aesthetics.\n\nTopic/Service: ${topic}\nTarget Audience: ${audience || 'Adults in South Florida seeking dermatology and aesthetics'}\nKey Points: ${points || 'Board-certified expertise, boutique care, Dr. Levi, Fort Lauderdale location, accepts insurance'}\nTone: ${tone}\n\nDeliver a complete, polished, ready-to-publish output. Include local SEO signals naturally.`;
+  }
+  if (mode === 'audit') {
+    const content = document.getElementById('a-content').value.trim();
+    const kw = document.getElementById('a-kw').value.trim();
+    return `${BRAND}\n\nPerform a detailed SEO audit for Ayana Dermatology & Aesthetics.\n\nPage content:\n${content}\n${kw ? '\nTarget keyword: ' + kw : ''}\n\nProvide:\n1. SEO Score (0–100) with explanation\n2. What's working well\n3. Critical issues to fix\n4. Specific recommendations: title tag, meta description, headers, content gaps, local SEO signals\n5. Improved title tag + meta description (ready to use)\n6. Top 3 priority action items\n\nBe specific and actionable.`;
+  }
+  if (mode === 'keywords') {
+    const topic = document.getElementById('k-topic').value.trim();
+    const loc = document.getElementById('k-loc').value.trim() || 'Fort Lauderdale';
+    return `${BRAND}\n\nKeyword research for Ayana Dermatology & Aesthetics.\nService/topic: "${topic}" | Location: ${loc}\n\nProvide:\n1. Primary keyword (highest value target)\n2. 8–10 secondary keywords with search intent (informational / transactional / local)\n3. 5 long-tail keywords (lower competition, high conversion)\n4. 3 local SEO keywords with geo-modifiers\n5. Competitor keyword gaps to target\n6. Recommended page title using primary keyword\n7. 3 blog content ideas using these keywords\n\nFormat clearly with numbered sections.`;
+  }
+}
+
+function validate(mode) {
+  if (mode === 'quick') {
+    if (!document.getElementById('q-topic').value.trim()) return 'Please enter a topic or keyword.';
+    if (!getChips()) return 'Please select at least one output type.';
+  }
+  if (mode === 'brief' && !document.getElementById('b-topic').value.trim()) return 'Please enter a topic or service.';
+  if (mode === 'audit' && !document.getElementById('a-content').value.trim()) return 'Please paste content to audit.';
+  if (mode === 'keywords' && !document.getElementById('k-topic').value.trim()) return 'Please enter a service or topic.';
+  return null;
+}
+
+async function runMode(mode) {
+  const err = validate(mode);
+  if (err) { showToast(err); return; }
+
+  const runBtn = document.getElementById('run-' + mode);
+  const loader = document.getElementById('load-' + mode);
+  const output = document.getElementById('out-' + mode);
+  const actions = document.getElementById('act-' + mode);
+
+  runBtn.disabled = true;
+  loader.classList.add('show');
+  output.classList.remove('show');
+  actions.classList.remove('show');
+
+  const prompt = buildPrompt(mode);
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || 'No response received.';
+    output.textContent = text;
+    output.classList.add('show');
+    actions.classList.add('show');
+
+    const topic = document.getElementById(mode === 'quick' ? 'q-topic' : mode === 'brief' ? 'b-topic' : mode === 'audit' ? 'a-kw' : 'k-topic')?.value || mode;
+    history.unshift({ mode, topic, text, time: new Date().toLocaleString() });
+  } catch(e) {
+    output.textContent = 'Error: ' + e.message;
+    output.classList.add('show');
+  }
+
+  loader.classList.remove('show');
+  runBtn.disabled = false;
+}
+
+function copyOut(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('✓ Copied to clipboard'));
+}
+
+function dlOut(id, mode) {
+  const text = document.getElementById(id).textContent;
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ayana-${mode}-${Date.now()}.txt`;
+  a.click();
+  showToast('✓ Downloaded');
+}
+
+function renderHistory() {
+  const body = document.getElementById('history-body');
+  if (!history.length) {
+    body.innerHTML = '<div class="empty">No outputs yet.<br>Generate content and it will be saved here.</div>';
+    return;
+  }
+  body.innerHTML = history.map((h, i) => `
+    <div class="h-item">
+      <div class="h-type">${h.mode}</div>
+      <div class="h-topic">${h.topic}</div>
+      <div class="h-time">${h.time}</div>
+      <div class="h-preview">${h.text.substring(0, 180)}...</div>
+    </div>`).join('');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
